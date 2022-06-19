@@ -1,19 +1,23 @@
 extern crate i2cdev;
 extern crate paho_mqtt as mqtt;
 
+pub mod config;
+
 use std::env;
+use std::fs::File;
+use std::io::BufReader;
 use std::process;
+use serde_json;
 use std::thread;
 use std::time::Duration;
 
 use i2cdev::core::*;
 use i2cdev::linux::{LinuxI2CDevice, LinuxI2CError};
 
+use crate::config::ConfigData;
+
 const NUNCHUCK_SLAVE_ADDR: u16 = 0x40;
-const DFLT_BROKER:&str = "tcp://172.25.130.227:1883";
 const DFLT_CLIENT:&str = "local_tempHumidity";
-const DFLT_TOPICS_HUMID:&str = "home/livingroom/humidity";
-const DFLT_TOPICS_TEMP:&str = "home/livingroom/temperature";
 const QOS:i32 = 0;
 const SLEEPTIME:u64 = 60;
 
@@ -22,13 +26,16 @@ fn main() {
 }
 
 fn i2cfun() -> Result<(), LinuxI2CError> {
-    let mut dev = LinuxI2CDevice::new("/dev/i2c-1", NUNCHUCK_SLAVE_ADDR)?;
+    let file = File::open("./Config_Hdc10082Mqtt.json")?;
+    let reader = BufReader::new(file);
+    let config: ConfigData = serde_json::from_reader(reader).expect("error while reading or parsing");
+    let mut dev = LinuxI2CDevice::new(config.dev_hdc1008, NUNCHUCK_SLAVE_ADDR)?;
 
     // init sequence
     dev.smbus_write_word_data(0x02, 0x0090)?;
     
     let host = env::args().nth(1).unwrap_or_else(||
-        DFLT_BROKER.to_string()
+        config.broker_url
     );
 
     // Define the set of options for the create.
@@ -66,7 +73,7 @@ fn i2cfun() -> Result<(), LinuxI2CError> {
         let humid = ((buf[2] as u16 * 256 + buf[3] as u16) as f64)/65536.0 * 100.0;
         println!("temp {:?} °C humid {:?} %", temp, humid);
         {
-            let msg = mqtt::Message::new(DFLT_TOPICS_HUMID, humid.to_string(), QOS);
+            let msg = mqtt::Message::new_retained(config.topic_humidity.as_str(), humid.to_string(), QOS);
             let tok = cli.publish(msg);
 
             if let Err(e) = tok {
@@ -74,7 +81,7 @@ fn i2cfun() -> Result<(), LinuxI2CError> {
                 }
         }
         {
-            let msg = mqtt::Message::new(DFLT_TOPICS_TEMP, temp.to_string(), QOS);
+            let msg = mqtt::Message::new_retained(config.topic_temperature.as_str(), temp.to_string(), QOS);
             let tok = cli.publish(msg);
 
             if let Err(e) = tok {
