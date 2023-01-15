@@ -26,11 +26,13 @@ fn i2cfun() -> Result<(), LinuxI2CError> {
     let file = File::open("config/Hdc10082Mqtt.json")?;
     let reader = BufReader::new(file);
     let config: ConfigData = serde_json::from_reader(reader).expect("error while reading or parsing");
+    println!("config read, open i2c-dev {:?}", config.dev_hdc1008);
     let mut dev = LinuxI2CDevice::new(config.dev_hdc1008, NUNCHUCK_SLAVE_ADDR)?;
 
     // init sequence
     dev.smbus_write_word_data(0x02, 0x0090)?;
 
+    println!("sensor initialised, connect to MQTT broker");
     //create mqtt client and connect
     let mut mqttoptions = MqttOptions::new(DFLT_CLIENT.to_string(), config.broker_url, config.broker_port);
     mqttoptions.set_keep_alive(Duration::from_secs(config.broker_conn_timeout));
