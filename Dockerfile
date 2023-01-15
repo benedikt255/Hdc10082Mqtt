@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM debian:stable-slim
 WORKDIR /app
 
 ARG execfile=target/release
