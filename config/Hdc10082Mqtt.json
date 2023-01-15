@@ -1,5 +1,7 @@
 {
-    "broker_url": "tcp://192.168.1.183:1883",
+    "broker_url": "192.168.1.183",
+    "broker_port": 1883,
+    "broker_conn_timeout": 600,
     "topic_temperature": "home/livingroom/temperature",
     "topic_humidity": "home/livingroom/humidity",
     "dev_hdc1008": "/dev/i2c-1"
