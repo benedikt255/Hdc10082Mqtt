@@ -23,14 +23,14 @@ fn main() {
 }
 
 fn i2cfun() -> Result<(), LinuxI2CError> {
-    let file = File::open("config/Hdc10082Mqtt.json")?;
+    let file = File::open("config/Hdc10082Mqtt.json").expect("error opening configuration file");
     let reader = BufReader::new(file);
     let config: ConfigData = serde_json::from_reader(reader).expect("error while reading or parsing");
     println!("config read, open i2c-dev {:?}", config.dev_hdc1008);
-    let mut dev = LinuxI2CDevice::new(config.dev_hdc1008, NUNCHUCK_SLAVE_ADDR)?;
+    let mut dev = LinuxI2CDevice::new(config.dev_hdc1008, NUNCHUCK_SLAVE_ADDR).expect("error opening i2c device");
 
     // init sequence
-    dev.smbus_write_word_data(0x02, 0x0090)?;
+    dev.smbus_write_word_data(0x02, 0x0090).expect("error initializing i2c device");
 
     println!("sensor initialised, connect to MQTT broker");
     //create mqtt client and connect
