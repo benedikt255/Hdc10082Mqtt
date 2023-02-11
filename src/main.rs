@@ -4,7 +4,6 @@ pub mod config;
 use i2cdev::core::*;
 use i2cdev::linux::{LinuxI2CDevice, LinuxI2CError};
 use rumqttc::{MqttOptions, Client, QoS};
-use serde_json;
 use std::fs::File;
 use std::io::BufReader;
 use std::thread;
@@ -19,7 +18,7 @@ const QOS:QoS = QoS::AtMostOnce;
 const SLEEPTIME:u64 = 60;
 
 fn main() {
-    i2cfun();
+    i2cfun().expect("exited with error");
 }
 
 fn i2cfun() -> Result<(), LinuxI2CError> {
