@@ -46,9 +46,9 @@ fn i2cfun() -> Result<(), LinuxI2CError> {
 
     loop {
         let mut buf: [u8; 4] = [0; 4];
-        dev.smbus_write_byte(0x00).unwrap();
+        dev.smbus_write_byte(0x00).expect("trigger measurement failed");
         thread::sleep(Duration::from_millis(20));
-        dev.read(&mut buf).unwrap();
+        dev.read(&mut buf).expect("read measurement results failed");
         println!("Reading: {:?}", buf);
         let temp = ((buf[0] as u16 * 256 + buf[1] as u16) as f64)/65536.0 * 165.0 - 40.0;
         let humid = ((buf[2] as u16 * 256 + buf[3] as u16) as f64)/65536.0 * 100.0;
