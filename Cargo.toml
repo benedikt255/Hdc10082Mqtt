@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 i2cdev = "0.6.0"
-rumqttc = "0.22.0"
+rumqttc = "0.23.0"
 serde_json = "1.0.95"
 serde = { version = "1.0.159", features = ["derive"]}
 tokio = "1.27.0"
